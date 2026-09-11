@@ -179,6 +179,12 @@
     background: transparent;
     color: #a98a95;
   }
+  .coupon .timestamp{
+    font-size: 11px;
+    color: #c9a5b4;
+    margin-top: 6px;
+    min-height: 14px;
+  }
   .coupon.pop{
     animation: pop 0.35s ease;
   }
@@ -215,6 +221,84 @@
     text-decoration: underline;
     cursor: pointer;
   }
+  .modal-overlay{
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(75,21,40,0.35);
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    padding: 20px;
+  }
+  .modal-overlay.open{
+    display: flex;
+  }
+  .modal-box{
+    background: var(--paper);
+    border-radius: 20px;
+    padding: 28px 24px;
+    max-width: 320px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 8px 24px rgba(75,21,40,0.18);
+  }
+  .modal-box h3{
+    font-size: 18px;
+    margin: 0 0 6px;
+    color: var(--rose-deep);
+    font-weight: 500;
+  }
+  .modal-box p{
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin: 0 0 16px;
+  }
+  .modal-box input{
+    width: 100%;
+    height: 48px;
+    border-radius: 12px;
+    border: 1.5px solid var(--border);
+    text-align: center;
+    font-size: 22px;
+    letter-spacing: 8px;
+    font-family: 'Mitr', sans-serif;
+    color: var(--ink);
+    margin-bottom: 10px;
+    outline: none;
+  }
+  .modal-box input:focus{
+    border-color: var(--rose);
+  }
+  .modal-error{
+    font-size: 12px;
+    color: #c0304f;
+    min-height: 16px;
+    margin-bottom: 6px;
+  }
+  .modal-buttons{
+    display: flex;
+    gap: 10px;
+    margin-top: 6px;
+  }
+  .modal-buttons button{
+    flex: 1;
+    height: 40px;
+    border-radius: 999px;
+    font-family: 'Mitr', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .modal-cancel{
+    background: transparent;
+    border: 1.5px solid var(--border);
+    color: var(--ink-soft);
+  }
+  .modal-confirm{
+    background: var(--rose);
+    border: 1.5px solid var(--rose);
+    color: #fff;
+  }
 </style>
 </head>
 <body>
@@ -236,16 +320,61 @@
   <footer>เก็บหน้านี้ไว้ แล้วเปิดใช้ทีละใบได้เลย</footer>
 </div>
 
+<div class="modal-overlay" id="pinOverlay">
+  <div class="modal-box">
+    <h3>ใส่รหัสเพื่อเริ่มใหม่</h3>
+    <p>พิมพ์รหัส 4 ตัวเพื่อยืนยัน</p>
+    <input type="tel" inputmode="numeric" maxlength="4" id="pinInput" autocomplete="off">
+    <div class="modal-error" id="pinError"></div>
+    <div class="modal-buttons">
+      <button class="modal-cancel" id="pinCancel">ยกเลิก</button>
+      <button class="modal-confirm" id="pinConfirm">ยืนยัน</button>
+    </div>
+  </div>
+</div>
+
 <script>
   const TOTAL = 10;
-  let used = new Array(TOTAL).fill(false);
+  const STORAGE_KEY = 'bat-neua-coupons';
+  const RESET_PIN = '3008';
+
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return new Array(TOTAL).fill(null);
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length === TOTAL) return parsed;
+      return new Array(TOTAL).fill(null);
+    }catch(e){
+      return new Array(TOTAL).fill(null);
+    }
+  }
+
+  function saveState(){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(usedAt));
+    }catch(e){}
+  }
+
+  // usedAt[i] is either null (not used) or a timestamp string (used)
+  let usedAt = loadState();
 
   const grid = document.getElementById('grid');
   const barFill = document.getElementById('barFill');
   const progressLabel = document.getElementById('progressLabel');
 
+  function formatTime(iso){
+    const d = new Date(iso);
+    const dd = String(d.getDate()).padStart(2,'0');
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    const yy = String(d.getFullYear()).slice(-2);
+    const hh = String(d.getHours()).padStart(2,'0');
+    const mi = String(d.getMinutes()).padStart(2,'0');
+    return `ใช้เมื่อ ${dd}/${mm}/${yy} ${hh}:${mi}`;
+  }
+
   function updateProgress(){
-    const count = used.filter(Boolean).length;
+    const count = usedAt.filter(Boolean).length;
     barFill.style.width = (count / TOTAL * 100) + '%';
     progressLabel.textContent = count + ' / ' + TOTAL;
   }
@@ -265,13 +394,30 @@
     el.appendChild(label);
 
     const btn = document.createElement('button');
-    btn.textContent = 'กดใช้';
+    el.appendChild(btn);
+
+    const ts = document.createElement('div');
+    ts.className = 'timestamp';
+    el.appendChild(ts);
+
+    function paint(){
+      if (usedAt[i]){
+        el.classList.add('used');
+        btn.textContent = 'ใช้แล้ว';
+        ts.textContent = formatTime(usedAt[i]);
+      } else {
+        el.classList.remove('used');
+        btn.textContent = 'กดใช้';
+        ts.textContent = '';
+      }
+    }
+
     btn.addEventListener('click', () => {
-      if (used[i]) return;
-      used[i] = true;
-      el.classList.add('used', 'pop');
-      label.textContent = 'ใช้สิทธิ์';
-      btn.textContent = 'ใช้แล้ว';
+      if (usedAt[i]) return;
+      usedAt[i] = new Date().toISOString();
+      saveState();
+      el.classList.add('pop');
+      paint();
 
       const heart = document.createElement('div');
       heart.className = 'burst';
@@ -281,23 +427,66 @@
 
       updateProgress();
     });
-    el.appendChild(btn);
 
+    paint();
     return el;
   }
 
-  for (let i = 0; i < TOTAL; i++){
-    grid.appendChild(makeCoupon(i));
-  }
-  updateProgress();
-
-  document.getElementById('resetBtn').addEventListener('click', () => {
-    used = new Array(TOTAL).fill(false);
+  function renderAll(){
     grid.innerHTML = '';
     for (let i = 0; i < TOTAL; i++){
       grid.appendChild(makeCoupon(i));
     }
     updateProgress();
+  }
+
+  renderAll();
+
+  const pinOverlay = document.getElementById('pinOverlay');
+  const pinInput = document.getElementById('pinInput');
+  const pinError = document.getElementById('pinError');
+  const pinCancel = document.getElementById('pinCancel');
+  const pinConfirm = document.getElementById('pinConfirm');
+
+  function openPinModal(){
+    pinInput.value = '';
+    pinError.textContent = '';
+    pinOverlay.classList.add('open');
+    setTimeout(() => pinInput.focus(), 50);
+  }
+
+  function closePinModal(){
+    pinOverlay.classList.remove('open');
+  }
+
+  function tryConfirmPin(){
+    if (pinInput.value.trim() === ''){
+      pinError.textContent = 'กรอกรหัสก่อน';
+      return;
+    }
+    if (pinInput.value !== RESET_PIN){
+      pinError.textContent = 'รหัสไม่ถูกต้อง';
+      pinInput.value = '';
+      pinInput.focus();
+      return;
+    }
+    usedAt = new Array(TOTAL).fill(null);
+    saveState();
+    renderAll();
+    closePinModal();
+  }
+
+  document.getElementById('resetBtn').addEventListener('click', openPinModal);
+  pinCancel.addEventListener('click', closePinModal);
+  pinConfirm.addEventListener('click', tryConfirmPin);
+  pinOverlay.addEventListener('click', (e) => {
+    if (e.target === pinOverlay) closePinModal();
+  });
+  pinInput.addEventListener('input', () => {
+    pinError.textContent = '';
+  });
+  pinInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') tryConfirmPin();
   });
 
   // decorative background hearts
