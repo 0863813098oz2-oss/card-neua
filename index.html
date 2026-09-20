@@ -364,14 +364,14 @@
 
 <div class="wrap">
   <header>
-    <p class="eyebrow">มอบให้คนพิเศษ</p>
+    <p class="eyebrow">ทำให้เด็กดื้อ</p>
     <h1>บัตรเหนือ</h1>
-    <p class="sub">คูปองแลกสิทธิ์คนละ 3 ใบ กดใช้สิทธิ์เมื่อถึงเวลา</p>
+    <p class="sub">พี่แบ่งให้คนละ 3 ใบแล้วนะ มีเวลาบอกด้วยนะ</p>
     <div class="sync-status" id="syncStatus"><span class="dot offline" id="syncDot"></span><span id="syncText">กำลังเชื่อมต่อ...</span></div>
   </header>
 
   <div class="person-section">
-    <div class="person-header"><span class="icon">🌸</span><h2>ฉัน</h2></div>
+    <div class="person-header"><span class="icon">🐹</span><h2>พี่</h2></div>
     <div class="person-progress">
       <div class="bar-track"><div class="bar-fill" id="barFill-mine"></div></div>
       <span class="progress-label" id="progressLabel-mine">0 / 3</span>
@@ -380,7 +380,7 @@
   </div>
 
   <div class="person-section">
-    <div class="person-header"><span class="icon">💌</span><h2>แฟน</h2></div>
+    <div class="person-header"><span class="icon">🐰</span><h2>หนู</h2></div>
     <div class="person-progress">
       <div class="bar-track"><div class="bar-fill" id="barFill-partner"></div></div>
       <span class="progress-label" id="progressLabel-partner">0 / 3</span>
@@ -388,25 +388,25 @@
     <div class="grid" id="grid-partner"></div>
   </div>
 
-  <button class="reset-btn" id="resetBtn">เริ่มใหม่ทั้งหมด</button>
-  <footer>เก็บลิงก์นี้ไว้ เปิดจากที่ไหนก็เห็นเหมือนกัน</footer>
+  <button class="reset-btn" id="resetBtn">💗💐</button>
+  <footer>พี่รักหนูนะ อยู่ด้วยกันไปตลอดนะ🫪</footer>
 </div>
 
 <div class="modal-overlay" id="pinOverlay">
   <div class="modal-box">
-    <h3>ใส่รหัสเพื่อเริ่มใหม่</h3>
-    <p>พิมพ์รหัส 4 ตัวเพื่อยืนยัน</p>
+    <h3>ได้เวลาสั่ง แล้วสิ😈</h3>
+    <p>อยากโดนสั่งก็ ใส่มาสิ 4 ตัว</p>
     <input type="tel" inputmode="numeric" maxlength="4" id="pinInput" autocomplete="off">
     <div class="modal-error" id="pinError"></div>
     <div class="modal-buttons">
-      <button class="modal-cancel" id="pinCancel">ยกเลิก</button>
-      <button class="modal-confirm" id="pinConfirm">ยืนยัน</button>
+      <button class="modal-cancel" id="pinCancel">ไม่เอา</button>
+      <button class="modal-confirm" id="pinConfirm">เอา</button>
     </div>
   </div>
 </div>
 
 <script>
-  // ===== ใส่ค่าจาก Firebase Console ของคุณตรงนี้ (ขั้นตอนที่ 2) =====
+  // ===== ใส่ค่าจาก Firebase Console (ขั้นตอนที่ 2) =====
   const firebaseConfig = {
     apiKey: "AIzaSyAujaL1OomYtbQiDjz6jEoGHx35lBNUscw",
     authDomain: "bat-neua.firebaseapp.com",
@@ -449,7 +449,7 @@
     const text = document.getElementById('syncText');
     if (mode === 'live'){
       dot.classList.remove('offline');
-      text.textContent = 'ซิงก์กันสด ๆ — เปิดคนละที่ก็เห็นตรงกัน';
+      text.textContent = 'สถานะอัปเดต ๆ — 🥺🥺😝';
     } else if (mode === 'connecting'){
       dot.classList.add('offline');
       text.textContent = 'กำลังเชื่อมต่อ...';
