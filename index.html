@@ -2,11 +2,13 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>บัตรเหนือ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=Chonburi&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-app-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-database-compat.min.js"></script>
 <style>
   :root{
     --bg: #fdeef2;
@@ -19,14 +21,39 @@
     --border: #f0c2d2;
     --gold: #e3a94f;
   }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg: #2a1420;
+      --paper: #3a1c2c;
+      --ink: #fbe4ec;
+      --ink-soft: #d9a9bd;
+      --rose: #f27b9f;
+      --rose-deep: #f6a0bc;
+      --rose-pale: #4d2434;
+      --border: #5c2c40;
+      --gold: #e3a94f;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg: #2a1420;
+    --paper: #3a1c2c;
+    --ink: #fbe4ec;
+    --ink-soft: #d9a9bd;
+    --rose: #f27b9f;
+    --rose-deep: #f6a0bc;
+    --rose-pale: #4d2434;
+    --border: #5c2c40;
+    --gold: #e3a94f;
+  }
   *{ box-sizing: border-box; }
-  html,body{ margin:0; padding:0; }
+  html,body{ margin:0; padding:0; height:100%; }
+  html{ scroll-padding-top: env(safe-area-inset-top, 0px); }
   body{
     background: var(--bg);
     font-family: 'Mitr', sans-serif;
     color: var(--ink);
     min-height: 100vh;
-    padding: 48px 20px 80px;
+    padding: calc(48px + env(safe-area-inset-top, 0px)) 20px calc(80px + env(safe-area-inset-bottom, 0px));
     position: relative;
     overflow-x: hidden;
   }
@@ -46,7 +73,7 @@
   }
   header{
     text-align: center;
-    margin-bottom: 36px;
+    margin-bottom: 30px;
   }
   .eyebrow{
     font-size: 14px;
@@ -67,16 +94,48 @@
     font-size: 16px;
     color: var(--ink-soft);
   }
-  .progress-row{
+  .sync-status{
+    margin: 10px 0 0;
+    font-size: 12px;
+    color: var(--ink-soft);
     display: flex;
     align-items: center;
-    gap: 14px;
-    max-width: 420px;
-    margin: 28px auto 0;
+    justify-content: center;
+    gap: 6px;
+  }
+  .dot{
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #9bc27c;
+    display: inline-block;
+  }
+  .dot.offline{ background: #c9a5b4; }
+
+  .person-section{
+    margin-top: 34px;
+  }
+  .person-header{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+  .person-header .icon{ font-size: 20px; }
+  .person-header h2{
+    font-family: 'Chonburi', serif;
+    font-weight: 400;
+    font-size: 22px;
+    color: var(--rose-deep);
+    margin: 0;
+  }
+  .person-progress{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
   }
   .bar-track{
     flex: 1;
-    height: 10px;
+    height: 8px;
     background: var(--rose-pale);
     border-radius: 999px;
     overflow: hidden;
@@ -89,67 +148,66 @@
     transition: width 0.4s ease;
   }
   .progress-label{
-    font-size: 14px;
+    font-size: 13px;
     color: var(--ink-soft);
     white-space: nowrap;
-    min-width: 52px;
+    min-width: 40px;
     text-align: right;
   }
   .grid{
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 18px;
-    margin-top: 36px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
   }
   @media (max-width: 420px){
-    .grid{ gap: 14px; }
+    .grid{ gap: 10px; }
   }
   .coupon{
     position: relative;
     background: var(--paper);
     border: 1.5px dashed var(--border);
     border-radius: 18px;
-    padding: 22px 14px 20px;
+    padding: 22px 10px 18px;
     text-align: center;
     transition: transform 0.15s ease, opacity 0.3s ease, background 0.3s ease;
   }
   .coupon::before, .coupon::after{
     content: "";
     position: absolute;
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
     background: var(--bg);
     border: 1.5px dashed var(--border);
     border-radius: 50%;
     left: 50%;
     transform: translateX(-50%);
   }
-  .coupon::before{ top: -12px; }
-  .coupon::after{ bottom: -12px; }
+  .coupon::before{ top: -11px; }
+  .coupon::after{ bottom: -11px; }
   .coupon .num{
-    font-size: 13px;
+    font-size: 12px;
     color: #c9a5b4;
     position: absolute;
     top: 12px;
-    left: 18px;
+    left: 14px;
   }
   .coupon .label{
-    font-size: 21px;
+    font-size: 18px;
     font-weight: 600;
     color: var(--rose);
-    margin-top: 14px;
+    margin-top: 12px;
     transition: color 0.3s ease, text-decoration 0.3s ease;
   }
   .coupon button{
-    margin-top: 14px;
+    margin-top: 12px;
     width: 100%;
-    height: 38px;
+    height: 34px;
     border-radius: 999px;
     border: 1.5px solid var(--rose);
     background: transparent;
     color: var(--rose);
     font-family: 'Mitr', sans-serif;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -162,28 +220,28 @@
     transform: scale(0.96);
   }
   .coupon.used{
-    background: #faf5f6;
-    opacity: 0.6;
+    background: var(--rose-pale);
+    opacity: 0.7;
   }
   .coupon.used .label{
     color: var(--ink-soft);
     text-decoration: line-through;
   }
   .coupon.used button{
-    border-color: #d8c3cb;
-    color: #a98a95;
+    border-color: var(--border);
+    color: var(--ink-soft);
     background: transparent;
     cursor: default;
   }
   .coupon.used button:hover{
     background: transparent;
-    color: #a98a95;
+    color: var(--ink-soft);
   }
   .coupon .timestamp{
-    font-size: 11px;
+    font-size: 10px;
     color: #c9a5b4;
     margin-top: 6px;
-    min-height: 14px;
+    min-height: 13px;
   }
   .coupon.pop{
     animation: pop 0.35s ease;
@@ -196,7 +254,7 @@
   .burst{
     position: absolute;
     top: 50%; left: 50%;
-    font-size: 22px;
+    font-size: 20px;
     pointer-events: none;
     animation: rise 0.7s ease-out forwards;
   }
@@ -206,7 +264,7 @@
   }
   footer{
     text-align: center;
-    margin-top: 44px;
+    margin-top: 40px;
     font-size: 13px;
     color: #c9a5b4;
   }
@@ -266,6 +324,7 @@
     color: var(--ink);
     margin-bottom: 10px;
     outline: none;
+    background: var(--paper);
   }
   .modal-box input:focus{
     border-color: var(--rose);
@@ -307,17 +366,30 @@
   <header>
     <p class="eyebrow">มอบให้คนพิเศษ</p>
     <h1>บัตรเหนือ</h1>
-    <p class="sub">คูปองแลกสิทธิ์ 10 ใบ กดใช้สิทธิ์เมื่อถึงเวลา</p>
-    <div class="progress-row">
-      <div class="bar-track"><div class="bar-fill" id="barFill"></div></div>
-      <span class="progress-label" id="progressLabel">0 / 10</span>
-    </div>
+    <p class="sub">คูปองแลกสิทธิ์คนละ 3 ใบ กดใช้สิทธิ์เมื่อถึงเวลา</p>
+    <div class="sync-status" id="syncStatus"><span class="dot offline" id="syncDot"></span><span id="syncText">กำลังเชื่อมต่อ...</span></div>
   </header>
 
-  <div class="grid" id="grid"></div>
+  <div class="person-section">
+    <div class="person-header"><span class="icon">🌸</span><h2>ฉัน</h2></div>
+    <div class="person-progress">
+      <div class="bar-track"><div class="bar-fill" id="barFill-mine"></div></div>
+      <span class="progress-label" id="progressLabel-mine">0 / 3</span>
+    </div>
+    <div class="grid" id="grid-mine"></div>
+  </div>
+
+  <div class="person-section">
+    <div class="person-header"><span class="icon">💌</span><h2>แฟน</h2></div>
+    <div class="person-progress">
+      <div class="bar-track"><div class="bar-fill" id="barFill-partner"></div></div>
+      <span class="progress-label" id="progressLabel-partner">0 / 3</span>
+    </div>
+    <div class="grid" id="grid-partner"></div>
+  </div>
 
   <button class="reset-btn" id="resetBtn">เริ่มใหม่ทั้งหมด</button>
-  <footer>เก็บหน้านี้ไว้ แล้วเปิดใช้ทีละใบได้เลย</footer>
+  <footer>เก็บลิงก์นี้ไว้ เปิดจากที่ไหนก็เห็นเหมือนกัน</footer>
 </div>
 
 <div class="modal-overlay" id="pinOverlay">
@@ -334,34 +406,58 @@
 </div>
 
 <script>
-  const TOTAL = 10;
-  const STORAGE_KEY = 'bat-neua-coupons';
-  const RESET_PIN = '3008';
+  // ===== ใส่ค่าจาก Firebase Console ของคุณตรงนี้ (ขั้นตอนที่ 2) =====
+  const firebaseConfig = {
+    apiKey: "AIzaSyAujaL1OomYtbQiDjz6jEoGHx35lBNUscw",
+    authDomain: "bat-neua.firebaseapp.com",
+    databaseURL: "https://bat-neua-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "bat-neua",
+    storageBucket: "bat-neua.firebasestorage.app",
+    messagingSenderId: "162078335255",
+    appId: "1:162078335255:web:50f0446e376e71efc5d752",
+    measurementId: "G-4HP57WFT07"
+  };
+  // ===================================================================
 
-  function loadState(){
+  const GROUPS = ['mine', 'partner'];
+  const PER_GROUP = 3;
+  const RESET_PIN = '3008';
+  const DB_PATH = 'coupons/state';
+
+  // state[group] = array of TOTAL, each null or ISO timestamp string
+  let state = { mine: new Array(PER_GROUP).fill(null), partner: new Array(PER_GROUP).fill(null) };
+
+  let dbRef = null;      // firebase database ref at DB_PATH once resolved
+  let usingFallback = false;
+  const FALLBACK_KEY = 'bat-neua-coupons-v2';
+
+  function loadFallback(){
     try{
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return new Array(TOTAL).fill(null);
+      const raw = localStorage.getItem(FALLBACK_KEY);
+      if (!raw) return null;
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length === TOTAL) return parsed;
-      return new Array(TOTAL).fill(null);
-    }catch(e){
-      return new Array(TOTAL).fill(null);
+      if (parsed && Array.isArray(parsed.mine) && Array.isArray(parsed.partner)) return parsed;
+      return null;
+    }catch(e){ return null; }
+  }
+  function saveFallback(){
+    try{ localStorage.setItem(FALLBACK_KEY, JSON.stringify(state)); }catch(e){}
+  }
+
+  function setSyncStatus(mode){
+    const dot = document.getElementById('syncDot');
+    const text = document.getElementById('syncText');
+    if (mode === 'live'){
+      dot.classList.remove('offline');
+      text.textContent = 'ซิงก์กันสด ๆ — เปิดคนละที่ก็เห็นตรงกัน';
+    } else if (mode === 'connecting'){
+      dot.classList.add('offline');
+      text.textContent = 'กำลังเชื่อมต่อ...';
+    } else {
+      dot.classList.add('offline');
+      text.textContent = 'โหมดออฟไลน์ — เห็นเฉพาะเครื่องนี้';
     }
   }
-
-  function saveState(){
-    try{
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(usedAt));
-    }catch(e){}
-  }
-
-  // usedAt[i] is either null (not used) or a timestamp string (used)
-  let usedAt = loadState();
-
-  const grid = document.getElementById('grid');
-  const barFill = document.getElementById('barFill');
-  const progressLabel = document.getElementById('progressLabel');
 
   function formatTime(iso){
     const d = new Date(iso);
@@ -373,13 +469,16 @@
     return `ใช้เมื่อ ${dd}/${mm}/${yy} ${hh}:${mi}`;
   }
 
-  function updateProgress(){
-    const count = usedAt.filter(Boolean).length;
-    barFill.style.width = (count / TOTAL * 100) + '%';
-    progressLabel.textContent = count + ' / ' + TOTAL;
+  function updateProgress(group){
+    const arr = state[group];
+    const count = arr.filter(Boolean).length;
+    document.getElementById('barFill-' + group).style.width = (count / PER_GROUP * 100) + '%';
+    document.getElementById('progressLabel-' + group).textContent = count + ' / ' + PER_GROUP;
   }
 
-  function makeCoupon(i){
+  const paintFns = { mine: [], partner: [] };
+
+  function makeCoupon(group, i){
     const el = document.createElement('div');
     el.className = 'coupon';
 
@@ -400,11 +499,21 @@
     ts.className = 'timestamp';
     el.appendChild(ts);
 
-    function paint(){
-      if (usedAt[i]){
+    function paint(animate){
+      const was = el.classList.contains('used');
+      if (state[group][i]){
         el.classList.add('used');
         btn.textContent = 'ใช้แล้ว';
-        ts.textContent = formatTime(usedAt[i]);
+        ts.textContent = formatTime(state[group][i]);
+        if (animate && !was){
+          el.classList.add('pop');
+          const heart = document.createElement('div');
+          heart.className = 'burst';
+          heart.textContent = '💗';
+          el.appendChild(heart);
+          setTimeout(() => heart.remove(), 700);
+          setTimeout(() => el.classList.remove('pop'), 400);
+        }
       } else {
         el.classList.remove('used');
         btn.textContent = 'กดใช้';
@@ -413,34 +522,110 @@
     }
 
     btn.addEventListener('click', () => {
-      if (usedAt[i]) return;
-      usedAt[i] = new Date().toISOString();
-      saveState();
-      el.classList.add('pop');
-      paint();
-
-      const heart = document.createElement('div');
-      heart.className = 'burst';
-      heart.textContent = '💗';
-      el.appendChild(heart);
-      setTimeout(() => heart.remove(), 700);
-
-      updateProgress();
+      if (state[group][i]) return;
+      commitUse(group, i);
     });
 
-    paint();
+    paintFns[group][i] = paint;
+    paint(false);
     return el;
   }
 
   function renderAll(){
-    grid.innerHTML = '';
-    for (let i = 0; i < TOTAL; i++){
-      grid.appendChild(makeCoupon(i));
-    }
-    updateProgress();
+    GROUPS.forEach(group => {
+      const grid = document.getElementById('grid-' + group);
+      grid.innerHTML = '';
+      paintFns[group] = [];
+      for (let i = 0; i < PER_GROUP; i++){
+        grid.appendChild(makeCoupon(group, i));
+      }
+      updateProgress(group);
+    });
   }
 
-  renderAll();
+  function repaintFromState(animateChanged){
+    GROUPS.forEach(group => {
+      for (let i = 0; i < PER_GROUP; i++){
+        if (paintFns[group][i]) paintFns[group][i](animateChanged);
+      }
+      updateProgress(group);
+    });
+  }
+
+  async function commitUse(group, i){
+    const now = new Date().toISOString();
+    // optimistic local update
+    state[group][i] = now;
+    repaintFromState(true);
+
+    if (dbRef){
+      try{
+        await dbRef.update({ [group]: state[group] });
+      }catch(e){
+        try{ await dbRef.set(state); }catch(e2){ saveFallback(); }
+      }
+    } else {
+      saveFallback();
+    }
+  }
+
+  async function doReset(){
+    state = { mine: new Array(PER_GROUP).fill(null), partner: new Array(PER_GROUP).fill(null) };
+    repaintFromState(false);
+    if (dbRef){
+      try{ await dbRef.set(state); }catch(e){ saveFallback(); }
+    } else {
+      saveFallback();
+    }
+  }
+
+  function initSync(){
+    setSyncStatus('connecting');
+
+    const configured = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes('ใส่');
+    if (!configured || typeof firebase === 'undefined'){
+      usingFallback = true;
+      const fb = loadFallback();
+      if (fb) state = fb;
+      renderAll();
+      setSyncStatus('offline');
+      return;
+    }
+
+    try{
+      firebase.initializeApp(firebaseConfig);
+      const database = firebase.database();
+      dbRef = database.ref(DB_PATH);
+      renderAll();
+
+      dbRef.on('value', (snap) => {
+        const data = snap.val();
+        if (data && Array.isArray(data.mine) && Array.isArray(data.partner)){
+          state = { mine: data.mine, partner: data.partner };
+          repaintFromState(true);
+          setSyncStatus('live');
+        } else if (!data) {
+          // ยังไม่มีข้อมูล — seed ด้วยสถานะเริ่มต้น
+          dbRef.set(state).then(() => setSyncStatus('live')).catch(() => setSyncStatus('offline'));
+        } else {
+          setSyncStatus('live');
+        }
+      }, (err) => {
+        usingFallback = true;
+        const fb = loadFallback();
+        if (fb) { state = fb; repaintFromState(false); }
+        setSyncStatus('offline');
+      });
+    }catch(e){
+      usingFallback = true;
+      const fb = loadFallback();
+      if (fb) state = fb;
+      renderAll();
+      setSyncStatus('offline');
+    }
+  }
+
+  initSync();
 
   const pinOverlay = document.getElementById('pinOverlay');
   const pinInput = document.getElementById('pinInput');
@@ -470,9 +655,7 @@
       pinInput.focus();
       return;
     }
-    usedAt = new Array(TOTAL).fill(null);
-    saveState();
-    renderAll();
+    doReset();
     closePinModal();
   }
 
